@@ -1,0 +1,25 @@
+type project
+title
+    Oath
+owners
+    Eero Helenius
+authors 
+    Eero Helenius
+projectUrl
+    https://github.com/eerohele/Oath
+iconUrl
+    https://raw.githubusercontent.com/eerohele/Oath/master/docs/files/img/logo.png
+licenseUrl
+    https://github.com/eerohele/Oath/blob/master/LICENSE
+requireLicenseAcceptance
+    false
+copyright
+    Copyright 2015
+tags
+    XSLT Test F#
+summary
+    Unit test XSLT with F#.
+description
+    Unit test XSLT with F#.
+
+
