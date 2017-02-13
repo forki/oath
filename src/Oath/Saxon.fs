@@ -37,14 +37,14 @@ module Saxon =
             | :? QName   as q   -> XdmAtomicValue(q)
             | _                 -> failwithf "Can't convert %s into an XdmAtomicValue." (value.ToString())
 
-        let toXdm value =
+        let toXdmValue value =
             match box value with
             | :? XdmNode as n -> n :> XdmValue
             | _ -> (value |> toXdmAtomic) :> XdmValue
 
         let dictionarize xs =
             xs
-            |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdm)
+            |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdmValue)
             |> dict |> Dictionary
 
         let toObj (value: XdmValue) =
@@ -122,7 +122,7 @@ module Saxon =
                 (fun destination -> transformer.CallTemplate(name, destination))
 
         let callFunction executable resultType name args parameters =
-            let arguments = args |> List.map XdmUtils.toXdm |> Array.ofList
+            let arguments = args |> List.map XdmUtils.toXdmValue |> Array.ofList
             let transformer = getTransformer executable parameters
 
             transform resultType
