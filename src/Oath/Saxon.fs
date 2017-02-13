@@ -156,8 +156,7 @@ module Saxon =
 
         XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
 
-    let documentNode (str: string) =
-        Builder.documentBuilder.Wrap(str.Xml) |> PNode
+    let documentNode (str: string) = Builder.wrap str.Xml
 
     let element str = XPath.selectNode "/*" (documentNode str)
 
