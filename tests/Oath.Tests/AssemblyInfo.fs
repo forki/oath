@@ -1,4 +1,4 @@
-﻿namespace Oath.Test.AssemblyInfo
+﻿namespace Oath.Tests.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices

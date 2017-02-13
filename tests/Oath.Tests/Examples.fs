@@ -1,4 +1,4 @@
-﻿namespace Oath.Test
+﻿namespace Oath.Tests
 
 module Examples =
     open Expecto
