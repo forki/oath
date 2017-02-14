@@ -46,6 +46,18 @@
     "/>
   </xsl:function>
 
+  <xsl:function name="local:rename-attribute" as="attribute()">
+    <xsl:param name="attr" as="attribute()"/>
+
+    <xsl:variable name="el" as="element()">
+      <el>
+        <xsl:attribute name="bar" select="$attr"/>
+      </el>
+    </xsl:variable>
+
+    <xsl:sequence select="$el/@bar"/>
+  </xsl:function>
+
   <xsl:template match="parent/child">
     <output number="{../@number}">ignore me</output>
   </xsl:template>

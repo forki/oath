@@ -49,8 +49,10 @@ module Expect =
         | AtomicValue a, AtomicValue c ->
             Expect.equal a c "The transformation yields the expected atomic value."
         | Node a, Node c -> xmlEquals a c
+        | PNode _, Node c -> xmlEquals (config.transformer.Serialize result).Xml c
+        | Node a, PNode c -> xmlEquals a (config.transformer.Serialize (PNode c)).Xml
         | _ ->
-            Tests.failtestf """Mismatch between actual value of type %s and control value of type%s: can only compare atomic values or nodes."""
+            Tests.failtestf """Mismatch between actual value of type %s and control value of type %s: can only compare atomic values or nodes."""
                 (result.GetType().ToString()) (control.GetType().ToString())
 
     let private validate (schema: XmlSchema) (node: XmlNode) =

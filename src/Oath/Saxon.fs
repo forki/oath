@@ -38,11 +38,12 @@ module Saxon =
             | _                 -> failwithf "Can't convert %s into an XdmAtomicValue." (value.ToString())
 
         let toXdmValue value =
-            match box value with
-            | :? XdmNode as n -> n :> XdmValue
-            | _ -> (value |> toXdmAtomic) :> XdmValue
+            match value with
+            | AtomicValue v -> v |> toXdmAtomic :> XdmValue
+            | Node n -> Builder.documentBuilder.Build(n) :> XdmValue
+            | PNode n -> n :> XdmValue
 
-        let dictionarize xs =
+        let dictionarize (xs: (XmlQualifiedName * Value<XdmNode>) list) =
             xs
             |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdmValue)
             |> dict |> Dictionary
@@ -76,7 +77,11 @@ module Saxon =
 
         let setContextNode (node: Value<XdmNode> option) (transformer: Xslt30Transformer) =
             node |> Option.iter (fun n ->
-                transformer.GlobalContextItem <- n |> Builder.toXdmNode)
+                transformer.GlobalContextItem <-
+                    match n with
+                    | Node doc -> Builder.documentBuilder.Build(doc)
+                    | PNode doc -> doc
+                    | AtomicValue _ -> failwith "Can't set context item to an atomic value.")
 
             transformer
 
@@ -103,16 +108,26 @@ module Saxon =
             match resultType with
             | AtomicResult -> AtomicValue (atom() |> XdmUtils.toObj)
             | NodeResult ->
-                let destination = XdmDestination()
+                let doc = XmlDocument()
+                let fragment = doc.CreateDocumentFragment()
+                let destination = DomDestination(fragment)
                 node destination
-                Node (destination.XdmNode.getUnderlyingXmlNode())
 
-        let applyTemplates executable resultType node mode parameters =
+                Node (fragment)
+
+        let applyTemplates executable resultType (node: Value<XdmNode>) mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
 
+            let doc =
+                match node with
+                | Node n ->
+                    Builder.documentBuilder.Build(n)
+                | PNode n -> n
+                | AtomicValue _ -> failwith "Can't set context item to an atomic value."
+
             transform resultType
-                (fun () -> transformer.ApplyTemplates(node |> Builder.toXdmNode))
-                (fun destination -> transformer.ApplyTemplates(node |> Builder.toXdmNode, destination))
+                (fun () -> transformer.ApplyTemplates(doc))
+                (fun destination -> transformer.ApplyTemplates(doc, destination))
 
         let callTemplate executable resultType name node parameters =
             let transformer = getTransformer executable parameters |> setContextNode node
@@ -156,7 +171,10 @@ module Saxon =
 
         XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
 
-    let documentNode (str: string) = Builder.wrap str.Xml
+    let documentNode (str: string) =
+        let doc = XmlDocument()
+        doc.LoadXml(str)
+        Builder.wrap doc
 
     let element str = XPath.selectNode "/*" (documentNode str)
 

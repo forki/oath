@@ -5,6 +5,7 @@ module Examples =
 
     open Oath
     open Oath.Saxon
+    open System.Xml
 
     let config = fun () ->
         Configuration.WithTransformer (TestLoader.transformerFromPath "Examples.xsl")
@@ -29,7 +30,7 @@ module Examples =
                     node = XML """<input number="1"/>"""
                     mode = None
                     /// `Q` is shorthand for creating an `XmlQualifiedName`.
-                    parameters = Parameter.List [(Q "number", 42L)]
+                    parameters = Parameter.List [(Q "number", AtomicValue 42L)]
                 } ==> XML """<output number="42"/>"""
 
             testCase "Apply a template in a non-default mode" <| fun () ->
@@ -42,7 +43,7 @@ module Examples =
             testCase "Call a template" <| fun () ->
                 CallTemplate {
                     name = Q "named-template"
-                    parameters = Parameter.List [(Q "number", 84L)]
+                    parameters = Parameter.List [(Q "number", AtomicValue 84L)]
                     node = None
                 } ==> XML """<output number="84"/>"""
 
@@ -72,5 +73,9 @@ module Examples =
 
             testCase "Call an XSLT function" <| fun () ->
                 /// Alternatively, use `CallFunction`.
-                Function.Call (Q2 "local" "reverse", ["foo"]) ==> AtomicValue "oof"
+                Function.Call (Q2 "local" "reverse", [AtomicValue "foo"]) ==> AtomicValue "oof"
+
+            testCase "Call an XSLT function that returns an attribute()" <| fun () ->
+                Function.Call (Q2 "local" "rename-attribute", [(attribute "foo" "baz")])
+                ==> attribute "bar" "baz"
         ]
