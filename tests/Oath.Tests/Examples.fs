@@ -18,7 +18,7 @@ module Examples =
                 ///
                 /// `==>` executes the instruction and compares the result of the transformation
                 /// against the control XML node.
-                doc """<input/>""" |> Template.Apply ==> doc """<output/>"""
+                document """<input/>""" |> Template.Apply ==> document """<output/>"""
 
             testCase "Apply a template with a parameter in the default mode" <| fun () ->
                 /// A more explicit way of expressing an XSLT template application is to use the
@@ -26,25 +26,25 @@ module Examples =
                 ///
                 /// With it, you need to specify the mode and the parameters explicitly.
                 ApplyTemplate {
-                    node = doc """<input number="1"/>"""
+                    node = document """<input number="1"/>"""
                     mode = None
                     /// `Q` is shorthand for creating an `XmlQualifiedName`.
                     parameters = Parameter.List [(Q "number", AtomicValue 42L)]
-                } ==> doc """<output number="42"/>"""
+                } ==> document """<output number="42"/>"""
 
             testCase "Apply a template in a non-default mode" <| fun () ->
                 ApplyTemplate {
-                    node = doc """<input/>"""
+                    node = document """<input/>"""
                     mode = Some (Q "non-default")
                     parameters = []
-                } ==> doc """<output mode="non-default"/>"""
+                } ==> document """<output mode="non-default"/>"""
 
             testCase "Call a template" <| fun () ->
                 CallTemplate {
                     name = Q "named-template"
                     parameters = Parameter.List [(Q "number", AtomicValue 84L)]
                     node = None
-                } ==> elem """<output number="84"/>"""
+                } ==> element """<output number="84"/>"""
 
             testCase "Call a template and set a context node" <| fun () ->
                 /// If your template or function takes some other XML node type than document node,
@@ -52,12 +52,12 @@ module Examples =
                 ///
                 /// For Saxon, the `Oath.Saxon` module contains functions for creating different
                 /// XML node types.
-                Template.Call (Q "named-template", elem """<input number="1"/>""")
-                ==> elem """<output number="10"/>"""
+                Template.Call (Q "named-template", element """<input number="1"/>""")
+                ==> element """<output number="10"/>"""
 
             testCase "Select a context node, apply the template for that node, and check whether the result matches an XPath expression" <| fun () ->
                 /// Define an input XML fragment.
-                doc """
+                document """
                 <parent number="42">
                     <child dependsOn="parent"/>
                 </parent>

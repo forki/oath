@@ -148,7 +148,7 @@ module Saxon =
             selector.ContextItem <- (Builder.toXdmNode ctx :> XdmItem)
             selector.EffectiveBooleanValue()
 
-    let attr name value =
+    let attribute name value =
         let doc = XmlDocument()
         let el = doc.CreateElement("x")
         let attr = doc.CreateAttribute(name)
@@ -158,12 +158,12 @@ module Saxon =
 
         XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
 
-    let doc (str: string) =
+    let document (str: string) =
         let doc = XmlDocument()
         doc.LoadXml(str)
         Builder.wrap doc
 
-    let elem str = XPath.selectNode "/*" (doc str)
+    let element str = XPath.selectNode "/*" (document str)
 
     let pi target data =
         let doc = XmlDocument()
