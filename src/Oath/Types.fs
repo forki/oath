@@ -11,9 +11,9 @@ module Extensions =
 
     type String with
         member this.Xml =
-            let doc = XmlDocument()
-            doc.LoadXml(this)
-            doc
+            let fragment = XmlDocument().CreateDocumentFragment()
+            fragment.InnerXml <- this
+            fragment
 
     type XmlDocument with
         /// Load an [XmlDocument] from a [Uri].
@@ -24,6 +24,12 @@ module Extensions =
 
         member this.XDocument =
             XDocument.Parse(this.OuterXml)
+
+    type XmlAttribute with
+        static member Create(name: string, value: string) =
+            let attr = XmlDocument().CreateAttribute(name)
+            attr.Value <- value
+            attr
 
     type XmlSchema with
         static member FromString(str: string): XmlSchema =
@@ -53,19 +59,19 @@ type Value<'n> =
 type ParameterScope = Stylesheet | Template
 
 /// An XSLT parameter declaration.
-type Parameter<'p> = {
-    values: (XmlQualifiedName * 'p) list;
+type Parameter<'n> = {
+    values: (XmlQualifiedName * Value<'n>) list;
     tunnel: bool;
     scope: ParameterScope
 } with
-    static member List(values: (XmlQualifiedName * 'p) list, ?scope, ?tunnel) =
+    static member List(values: (XmlQualifiedName * Value<'n>) list, ?scope, ?tunnel) =
         [{
             values = values
             tunnel = defaultArg tunnel false
             scope = defaultArg scope Template
         }]
 
-type Arguments = obj list
+type Arguments<'n> = Value<'n> list
 
 type TemplateApplication<'n, 'p> = {
     node: Value<'n>
@@ -81,7 +87,7 @@ type TemplateCall<'n, 'p> = {
 
 type FunctionCall<'p> = {
     name: XmlQualifiedName
-    arguments: Arguments
+    arguments: Arguments<'p>
     parameters: Parameter<'p> list
 }
 
@@ -106,7 +112,7 @@ type Template<'n> =
         }
 
 type Function =
-    static member Call(name: XmlQualifiedName, arguments: Arguments, ?parameters) =
+    static member Call(name: XmlQualifiedName, arguments: Arguments<'n>, ?parameters) =
         CallFunction {
             name = name
             arguments = arguments
@@ -130,6 +136,8 @@ type XsltTransformer<'n, 'p1, 'p2, 'p3> = {
 
     /// Serialize a value into a string
     Serialize: Value<'n> -> string
+
+    Unwrap: 'n -> XmlNode
 }
 
 /// The configuration for an XSLT transformation.

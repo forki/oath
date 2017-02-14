@@ -3,6 +3,7 @@ namespace Oath.Tests
 module OathTest =
     open Expecto
     open Oath
+    open Oath.Saxon
 
     let config = fun () -> Configuration.WithTransformer (Saxon.getIdentityTransformer())
 
@@ -10,7 +11,7 @@ module OathTest =
     let tests = Expect.transformation config <| fun (==>) _ _ ->
         testList "Oath" [
             testCase "Can transform XML with XSLT" <| fun _ ->
-                XML """<input/>""" |> Template.Apply ==> XML """<input/>"""
+                doc """<input/>""" |> Template.Apply ==> doc """<input/>"""
         ]
 
     [<EntryPoint>]

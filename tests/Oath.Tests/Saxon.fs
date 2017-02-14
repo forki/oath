@@ -19,19 +19,19 @@ module SaxonTest =
         testList "Saxon XML node types" [
             testCase "Document node" <| fun _ ->
                 Expect.equal
-                    (documentNode "<x/>" |> getNodeKind)
+                    (doc "<x/>" |> getNodeKind)
                     (Some XmlNodeType.Document)
                     "documentNode"
 
             testCase "Element" <| fun _ ->
                 Expect.equal
-                    (element "<x/>" |> getNodeKind)
+                    (elem "<x/>" |> getNodeKind)
                     (Some XmlNodeType.Element)
                     "element"
 
             testCase "Attribute" <| fun _ ->
                 Expect.equal
-                    (attribute "foo" "bar" |> getNodeKind)
+                    (attr "foo" "bar" |> getNodeKind)
                     (Some XmlNodeType.Attribute)
                     "attribute"
 

@@ -38,11 +38,12 @@ module Saxon =
             | _                 -> failwithf "Can't convert %s into an XdmAtomicValue." (value.ToString())
 
         let toXdmValue value =
-            match box value with
-            | :? XdmNode as n -> n :> XdmValue
-            | _ -> (value |> toXdmAtomic) :> XdmValue
+            match value with
+            | AtomicValue v -> v |> toXdmAtomic :> XdmValue
+            | Node n -> Builder.documentBuilder.Build(n) :> XdmValue
+            | PNode n -> n :> XdmValue
 
-        let dictionarize xs =
+        let dictionarize (xs: (XmlQualifiedName * Value<XdmNode>) list) =
             xs
             |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdmValue)
             |> dict |> Dictionary
@@ -146,7 +147,7 @@ module Saxon =
             selector.ContextItem <- (Builder.toXdmNode ctx :> XdmItem)
             selector.EffectiveBooleanValue()
 
-    let attribute name value =
+    let attr name value =
         let doc = XmlDocument()
         let el = doc.CreateElement("x")
         let attr = doc.CreateAttribute(name)
@@ -156,9 +157,12 @@ module Saxon =
 
         XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
 
-    let documentNode (str: string) = Builder.wrap str.Xml
+    let doc (str: string) =
+        let doc = XmlDocument()
+        doc.LoadXml(str)
+        Builder.wrap doc
 
-    let element str = XPath.selectNode "/*" (documentNode str)
+    let elem str = XPath.selectNode "/*" (doc str)
 
     let pi target data =
         let doc = XmlDocument()
@@ -199,6 +203,8 @@ module Saxon =
                 | AtomicValue v -> v.ToString()
                 | Node n -> n.OuterXml
                 | PNode n -> n.OuterXml
+
+            Unwrap = fun node -> node.getUnderlyingXmlNode()
         }
 
     let getIdentityTransformer() = createTransformer XSLT.IdentityTransform.Xml

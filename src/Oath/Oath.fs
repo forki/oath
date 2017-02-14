@@ -42,10 +42,6 @@ module Oath =
 
 [<AutoOpen>]
 module AutoOpen =
-    /// Construct an XML node from a string. You can use the resulting [Node] to create an
-    /// [Instruction].
-    let XML (str: string) = Node str.Xml
-
     /// Create an [XmlQualifiedName] instance.
     let Q = XmlQualifiedName
 
