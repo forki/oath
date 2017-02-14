@@ -217,6 +217,11 @@ module Saxon =
                 | AtomicValue v -> v.ToString()
                 | Node n -> n.OuterXml
                 | PNode n -> n.OuterXml
+
+            ToXmlNode = fun node ->
+                match Option.ofObj (node.getUnderlyingXmlNode()) with
+                | None -> node.OuterXml.Xml :> XmlNode
+                | Some n -> n
         }
 
     let getIdentityTransformer() = createTransformer XSLT.IdentityTransform.Xml
