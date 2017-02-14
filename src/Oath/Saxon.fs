@@ -103,9 +103,9 @@ module Saxon =
             match resultType with
             | AtomicResult -> AtomicValue (atom() |> XdmUtils.toObj)
             | NodeResult ->
-                let destination = DomDestination()
+                let destination = XdmDestination()
                 node destination
-                Node (destination.XmlDocument :> XmlNode)
+                Node (destination.XdmNode.getUnderlyingXmlNode())
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
