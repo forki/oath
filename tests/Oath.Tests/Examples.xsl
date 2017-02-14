@@ -13,7 +13,7 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="input[xs:integer(@number) eq 1]" name="named-template">
+  <xsl:template match="input[xs:integer(@number) eq 1]" name="named-template" as="element()">
     <xsl:param name="number" as="xs:integer" select="xs:integer(@number) * 10"/>
     <output number="{$number}"/>
   </xsl:template>
@@ -44,6 +44,18 @@
     <xsl:sequence select="
         codepoints-to-string(reverse(string-to-codepoints($str)))
     "/>
+  </xsl:function>
+
+  <xsl:function name="local:wrap" as="element(bar)">
+    <xsl:param name="foo" as="element(foo)"/>
+
+    <xsl:variable name="bar" as="element(bar)">
+      <bar>
+        <xsl:sequence select="$foo"/>
+      </bar>
+    </xsl:variable>
+
+    <xsl:sequence select="$bar"/>
   </xsl:function>
 
   <xsl:template match="parent/child">

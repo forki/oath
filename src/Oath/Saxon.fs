@@ -104,9 +104,10 @@ module Saxon =
             match resultType with
             | AtomicResult -> AtomicValue (atom() |> XdmUtils.toObj)
             | NodeResult ->
-                let destination = DomDestination()
+                let fragment = XmlDocument().CreateDocumentFragment()
+                let destination = DomDestination(fragment)
                 node destination
-                Node (destination.XmlDocument :> XmlNode)
+                Node (fragment :> XmlNode)
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
@@ -204,7 +205,23 @@ module Saxon =
                 | Node n -> n.OuterXml
                 | PNode n -> n.OuterXml
 
-            Unwrap = fun node -> node.getUnderlyingXmlNode()
+            Unwrap = fun node ->
+                let xmlNode = node.getUnderlyingXmlNode()
+                
+                let doc =
+                    if (xmlNode.NodeType = XmlNodeType.Document)
+                        then xmlNode :?> XmlDocument
+                        else XmlDocument()
+
+                let fragment = doc.CreateDocumentFragment()
+
+                let n' =
+                    if (xmlNode.NodeType = XmlNodeType.Document)
+                        then xmlNode.FirstChild
+                        else doc.ImportNode(xmlNode, true)
+
+                fragment.AppendChild(n') |> ignore
+                fragment :> XmlNode
         }
 
     let getIdentityTransformer() = createTransformer XSLT.IdentityTransform.Xml

@@ -11,7 +11,7 @@ module Expect =
     open System.Xml.Schema
 
     /// Check whether two [XmlNode] instances are equal.
-    let xmlEquals control actual =
+    let xmlEquals (actual: XmlNode) (control: XmlNode) =
         let diff = Oath.computeDiff actual control
         Expect.isFalse (diff.HasDifferences()) (diff.ToString())
 
@@ -44,13 +44,16 @@ module Expect =
     /// XML [Node].
     let yields config instruction (control: Value<'n>) =
         let result = Oath.execute config control.ResultType instruction
+        let unwrap = config.transformer.Unwrap
 
         match (result, control |> config.controlRefiner) with
         | AtomicValue a, AtomicValue c ->
             Expect.equal a c "The transformation yields the expected atomic value."
         | Node a, Node c -> xmlEquals a c
-        | PNode a, Node c -> xmlEquals (config.transformer.Unwrap a) c
-        | Node a, PNode c -> xmlEquals a (config.transformer.Unwrap c)
+        | PNode a, Node c -> xmlEquals (unwrap a) c
+        | Node a, PNode c ->
+            xmlEquals a (unwrap c)
+        | PNode a, PNode c -> xmlEquals (unwrap a) (unwrap c)
         | _ ->
             Tests.failtestf """Mismatch between actual value of type %s and control value of type %s: can only compare atomic values or nodes."""
                 (result.GetType().ToString()) (control.GetType().ToString())

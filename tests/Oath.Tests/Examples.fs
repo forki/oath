@@ -44,7 +44,7 @@ module Examples =
                     name = Q "named-template"
                     parameters = Parameter.List [(Q "number", AtomicValue 84L)]
                     node = None
-                } ==> doc """<output number="84"/>"""
+                } ==> elem """<output number="84"/>"""
 
             testCase "Call a template and set a context node" <| fun () ->
                 /// If your template or function takes some other XML node type than document node,
@@ -53,7 +53,7 @@ module Examples =
                 /// For Saxon, the `Oath.Saxon` module contains functions for creating different
                 /// XML node types.
                 Template.Call (Q "named-template", elem """<input number="1"/>""")
-                ==> doc """<output number="10"/>"""
+                ==> elem """<output number="10"/>"""
 
             testCase "Select a context node, apply the template for that node, and check whether the result matches an XPath expression" <| fun () ->
                 /// Define an input XML fragment.
