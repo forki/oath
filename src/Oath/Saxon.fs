@@ -100,36 +100,41 @@ module Saxon =
             transformer.GetUnderlyingController.setRecoveryPolicy(2)
             transformer |> setParameters parameters
 
-        let transform resultType atom (node: XmlDestination -> unit) =
+        let transform resultType (transformation: unit -> XdmValue) =
             match resultType with
-            | AtomicResult -> AtomicValue (atom() |> XdmUtils.toObj)
+            | AtomicResult -> AtomicValue (transformation() |> XdmUtils.toObj)
             | NodeResult ->
-                let fragment = XmlDocument().CreateDocumentFragment()
-                let destination = DomDestination(fragment)
-                node destination
-                Node (fragment :> XmlNode)
+                let node = transformation() :?> XdmNode
+
+                let result: XmlNode =
+                    match node.NodeKind with
+                    | XmlNodeType.Attribute ->
+                        let qName = node.NodeName.ToXmlQualifiedName()
+                        XmlBuilder.attribute qName (node.GetAttributeValue(node.NodeName)) :> XmlNode
+                    | XmlNodeType.Document ->
+                        node.getUnderlyingXmlNode()
+                    | XmlNodeType.Element ->
+                        node.getUnderlyingXmlNode()
+                    | _ -> failwith "boo"
+
+
+                Node result
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
 
-            transform resultType
-                (fun () -> transformer.ApplyTemplates(node |> Builder.toXdmNode))
-                (fun destination -> transformer.ApplyTemplates(node |> Builder.toXdmNode, destination))
+            transform resultType (fun () -> transformer.ApplyTemplates(node |> Builder.toXdmNode))
 
         let callTemplate executable resultType name node parameters =
             let transformer = getTransformer executable parameters |> setContextNode node
 
-            transform resultType
-                (fun () -> transformer.CallTemplate(name))
-                (fun destination -> transformer.CallTemplate(name, destination))
+            transform resultType (fun () -> transformer.CallTemplate(name))
 
         let callFunction executable resultType name args parameters =
             let arguments = args |> List.map XdmUtils.toXdmValue |> Array.ofList
             let transformer = getTransformer executable parameters
 
-            transform resultType
-                (fun () -> transformer.CallFunction(name, arguments))
-                (fun destination -> transformer.CallFunction(name, arguments, destination))
+            transform resultType (fun () -> transformer.CallFunction(name, arguments))
 
     [<RequireQualifiedAccess>]
     module XPath =

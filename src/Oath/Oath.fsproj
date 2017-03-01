@@ -61,6 +61,7 @@
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="XmlBuilder.fs" />
     <Compile Include="Oath.fs" />
     <Compile Include="Expect.fs" />
     <Compile Include="Saxon.fs" />
