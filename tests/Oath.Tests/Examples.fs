@@ -18,7 +18,7 @@ module Examples =
                 ///
                 /// `==>` executes the instruction and compares the result of the transformation
                 /// against the control XML node.
-                document """<input/>""" |> Template.Apply ==> document """<output/>"""
+                Node (XmlBuilder.document """<input/>""") |> Template.Apply ==> Node (XmlBuilder.document """<output/>""")
 
             testCase "Apply a template with a parameter in the default mode" <| fun () ->
                 /// A more explicit way of expressing an XSLT template application is to use the
@@ -44,7 +44,7 @@ module Examples =
                     name = Q "named-template"
                     parameters = Parameter.List [(Q "number", AtomicValue 84L)]
                     node = None
-                } ==> element """<output number="84"/>"""
+                } ==> document """<output number="84"/>"""
 
             testCase "Call a template and set a context node" <| fun () ->
                 /// If your template or function takes some other XML node type than document node,
@@ -53,7 +53,7 @@ module Examples =
                 /// For Saxon, the `Oath.Saxon` module contains functions for creating different
                 /// XML node types.
                 Template.Call (Q "named-template", element """<input number="1"/>""")
-                ==> element """<output number="10"/>"""
+                ==> document """<output number="10"/>"""
 
             testCase "Select a context node, apply the template for that node, and check whether the result matches an XPath expression" <| fun () ->
                 /// Define an input XML fragment.
@@ -73,4 +73,7 @@ module Examples =
             testCase "Call an XSLT function" <| fun () ->
                 /// Alternatively, use `CallFunction`.
                 Function.Call (Q2 "local" "reverse", [AtomicValue "foo"]) ==> AtomicValue "oof"
+
+            testCase "Call an XSLT function that returns an element" <| fun () ->
+                Function.Call (Q2 "local" "wrap", [element "<foo/>"]) ==> Node (XmlBuilder.element "<bar><foo/></bar>")
         ]

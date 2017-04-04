@@ -112,11 +112,12 @@ module Saxon =
                         let qName = node.NodeName.ToXmlQualifiedName()
                         XmlBuilder.attribute qName (node.GetAttributeValue(node.NodeName)) :> XmlNode
                     | XmlNodeType.Document ->
-                        node.getUnderlyingXmlNode()
+                        XmlBuilder.document node.OuterXml :> XmlNode
                     | XmlNodeType.Element ->
-                        node.getUnderlyingXmlNode()
+                        XmlBuilder.element node.OuterXml :> XmlNode
+                    | XmlNodeType.Text ->
+                        XmlBuilder.text node.StringValue :> XmlNode
                     | _ -> failwith "boo"
-
 
                 Node result
 
@@ -210,23 +211,7 @@ module Saxon =
                 | Node n -> n.OuterXml
                 | PNode n -> n.OuterXml
 
-            Unwrap = fun node ->
-                let xmlNode = node.getUnderlyingXmlNode()
-                
-                let doc =
-                    if (xmlNode.NodeType = XmlNodeType.Document)
-                        then xmlNode :?> XmlDocument
-                        else XmlDocument()
-
-                let fragment = doc.CreateDocumentFragment()
-
-                let n' =
-                    if (xmlNode.NodeType = XmlNodeType.Document)
-                        then xmlNode.FirstChild
-                        else doc.ImportNode(xmlNode, true)
-
-                fragment.AppendChild(n') |> ignore
-                fragment :> XmlNode
+            Unwrap = fun node -> node.getUnderlyingXmlNode()
         }
 
     let getIdentityTransformer() = createTransformer XSLT.IdentityTransform.Xml
