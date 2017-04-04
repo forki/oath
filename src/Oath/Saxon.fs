@@ -15,7 +15,16 @@ module Saxon =
 
         let toXdmNode (node: Value<XdmNode>) =
             match node with
-            | Node n -> documentBuilder.Build(n)
+            | Node n ->
+                let xdmNode = documentBuilder.Build(n)
+
+                match n.NodeType with
+                | XmlNodeType.Document -> xdmNode
+                | XmlNodeType.Element ->
+                    let e = xdmNode.EnumerateAxis(XdmAxis.Child)
+                    e.MoveNext() |> ignore
+                    e.Current :?> XdmNode
+                | _ -> failwith "boo"
             | PNode n -> n
             | AtomicValue v ->
                 failwithf "Can't convert atomic value %s into an XdmNode" (v.ToString())
@@ -40,7 +49,7 @@ module Saxon =
         let toXdmValue value =
             match value with
             | AtomicValue v -> v |> toXdmAtomic :> XdmValue
-            | Node n -> Builder.documentBuilder.Build(n) :> XdmValue
+            | Node _ -> Builder.toXdmNode value :> XdmValue
             | PNode n -> n :> XdmValue
 
         let dictionarize (xs: (XmlQualifiedName * Value<XdmNode>) list) =
@@ -106,20 +115,17 @@ module Saxon =
             | NodeResult ->
                 let node = transformation() :?> XdmNode
 
-                let result =
-                    match node.NodeKind with
-                    | XmlNodeType.Attribute ->
-                        let qName = node.NodeName.ToXmlQualifiedName()
-                        XmlBuilder.attribute qName (node.GetAttributeValue(node.NodeName))
-                    | XmlNodeType.Document ->
-                        XmlBuilder.document node.OuterXml
-                    | XmlNodeType.Element ->
-                        XmlBuilder.element node.OuterXml
-                    | XmlNodeType.Text ->
-                        XmlBuilder.text node.StringValue
-                    | _ -> failwith "boo"
-
-                result
+                match node.NodeKind with
+                | XmlNodeType.Attribute ->
+                    let qName = node.NodeName.ToXmlQualifiedName()
+                    XmlBuilder.attribute qName (node.GetAttributeValue(node.NodeName))
+                | XmlNodeType.Document ->
+                    XmlBuilder.document node.OuterXml
+                | XmlNodeType.Element ->
+                    XmlBuilder.element node.OuterXml
+                | XmlNodeType.Text ->
+                    XmlBuilder.text node.StringValue
+                | _ -> failwith "boo"
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
