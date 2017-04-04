@@ -5,6 +5,7 @@ module Examples =
 
     open Oath
     open Oath.Saxon
+    open Oath.XmlBuilder
 
     let config = fun () ->
         Configuration.WithTransformer (TestLoader.transformerFromPath "Examples.xsl")
@@ -18,7 +19,7 @@ module Examples =
                 ///
                 /// `==>` executes the instruction and compares the result of the transformation
                 /// against the control XML node.
-                Node (XmlBuilder.document """<input/>""") |> Template.Apply ==> Node (XmlBuilder.document """<output/>""")
+                document """<input/>""" |> Template.Apply ==> document """<output/>"""
 
             testCase "Apply a template with a parameter in the default mode" <| fun () ->
                 /// A more explicit way of expressing an XSLT template application is to use the
@@ -75,5 +76,5 @@ module Examples =
                 Function.Call (Q2 "local" "reverse", [AtomicValue "foo"]) ==> AtomicValue "oof"
 
             testCase "Call an XSLT function that returns an element" <| fun () ->
-                Function.Call (Q2 "local" "wrap", [element "<foo/>"]) ==> Node (XmlBuilder.element "<bar><foo/></bar>")
+                Function.Call (Q2 "local" "wrap", [element "<foo/>"]) ==> element "<bar><foo/></bar>"
         ]

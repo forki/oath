@@ -4,6 +4,7 @@ open Expecto
 
 open Oath
 open Oath.Saxon
+open Oath.Saxon.Xml
 
 open Saxon.Api
 open System.Xml

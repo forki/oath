@@ -4,19 +4,21 @@ module XmlBuilder =
     open System.Xml
 
     let document str =
-        let doc = new XmlDocument()
+        let doc = XmlDocument()
         doc.LoadXml(str)
-        doc
+        Node doc
 
     let element str =
-        (document str).DocumentElement
+        let doc = XmlDocument()
+        doc.LoadXml(str)
+        Node doc.DocumentElement
 
-    let attribute (qName: XmlQualifiedName) value =
-        let attr = XmlDocument().CreateAttribute(qName.Name, qName.Namespace)
+    let attribute (qname: XmlQualifiedName) value =
+        let attr = XmlDocument().CreateAttribute(qname.Name, qname.Namespace)
         attr.Value <- value
-        attr
+        Node attr
 
     let text str =
         let doc = XmlDocument()
         let t = doc.CreateTextNode(str)
-        t
+        Node t
