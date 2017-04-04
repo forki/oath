@@ -48,11 +48,6 @@ module Examples =
                 } ==> document """<output number="84"/>"""
 
             testCase "Call a template and set a context node" <| fun () ->
-                /// If your template or function takes some other XML node type than document node,
-                /// you have to create that type of node.
-                ///
-                /// For Saxon, the `Oath.Saxon` module contains functions for creating different
-                /// XML node types.
                 Template.Call (Q "named-template", element """<input number="1"/>""")
                 ==> document """<output number="10"/>"""
 
