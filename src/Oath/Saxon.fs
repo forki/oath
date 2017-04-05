@@ -164,39 +164,38 @@ module Saxon =
             selector.ContextItem <- (Builder.build ctx :> XdmItem)
             selector.EffectiveBooleanValue()
 
-    module Xml =
-        let attribute name value =
-            let doc = XmlDocument()
-            let el = doc.CreateElement("x")
-            let attr = doc.CreateAttribute(name)
-            attr.Value <- value
-            el.SetAttributeNode(attr) |> ignore
-            doc.AppendChild(el) |> ignore
+    let attribute name value =
+        let doc = XmlDocument()
+        let el = doc.CreateElement("x")
+        let attr = doc.CreateAttribute(name)
+        attr.Value <- value
+        el.SetAttributeNode(attr) |> ignore
+        doc.AppendChild(el) |> ignore
 
-            XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
+        XPath.selectNode (sprintf "/x/@%s" name) (Builder.wrap doc)
 
-        let document (str: string) =
-            let doc = XmlDocument()
-            doc.LoadXml(str)
-            Builder.wrap doc
+    let document (str: string) =
+        let doc = XmlDocument()
+        doc.LoadXml(str)
+        Builder.wrap doc
 
-        let element str = XPath.selectNode "/*" (document str)
+    let element str = XPath.selectNode "/*" (document str)
 
-        let pi target data =
-            let doc = XmlDocument()
-            let pi = doc.CreateProcessingInstruction(target, data)
-            doc.AppendChild(pi) |> ignore
+    let pi target data =
+        let doc = XmlDocument()
+        let pi = doc.CreateProcessingInstruction(target, data)
+        doc.AppendChild(pi) |> ignore
 
-            XPath.selectNode (sprintf "/processing-instruction('%s')" target) (Builder.wrap doc)
+        XPath.selectNode (sprintf "/processing-instruction('%s')" target) (Builder.wrap doc)
 
-        let text str =
-            let doc = XmlDocument()
-            let el = doc.CreateElement("x")
-            let t = doc.CreateTextNode(str)
-            el.AppendChild(t) |> ignore
-            doc.AppendChild(el) |> ignore
+    let text str =
+        let doc = XmlDocument()
+        let el = doc.CreateElement("x")
+        let t = doc.CreateTextNode(str)
+        el.AppendChild(t) |> ignore
+        doc.AppendChild(el) |> ignore
 
-            XPath.selectNode "/x/text()" (Builder.wrap doc)
+        XPath.selectNode "/x/text()" (Builder.wrap doc)
 
     let createTransformer (stylesheet: XmlNode) =
         let executable = XSLT.compileXmlNode stylesheet

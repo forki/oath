@@ -4,7 +4,6 @@ open Expecto
 
 open Oath
 open Oath.Saxon
-open Oath.Saxon.Xml
 
 open Saxon.Api
 open System.Xml
@@ -18,34 +17,39 @@ module SaxonTest =
     [<Tests>]
     let tests =
         testList "Saxon XML node types" [
-            testCase "Document node" <| fun _ ->
+            test "Document node" {
                 Expect.equal
                     (document "<x/>" |> getNodeKind)
                     (Some XmlNodeType.Document)
                     "documentNode"
+            }
 
-            testCase "Element" <| fun _ ->
+            test "Element" {
                 Expect.equal
                     (element "<x/>" |> getNodeKind)
                     (Some XmlNodeType.Element)
                     "element"
+            }
 
-            testCase "Attribute" <| fun _ ->
+            test "Attribute" {
                 Expect.equal
                     (attribute "foo" "bar" |> getNodeKind)
                     (Some XmlNodeType.Attribute)
                     "attribute"
+            }
 
-            testCase "Processing instruction" <| fun _ ->
+            test "Processing instruction" {
                 Expect.equal
                     (pi "foo" "bar" |> getNodeKind)
                     (Some XmlNodeType.ProcessingInstruction)
                     "processing-instruction"
+            }
 
-            testCase "Text" <| fun _ ->
+            test "Text" {
                 Expect.equal
                     (text "foo" |> getNodeKind)
                     (Some XmlNodeType.Text)
                     "text"
+            }
         ]
 

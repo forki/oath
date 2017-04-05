@@ -5,7 +5,6 @@ module Examples =
 
     open Oath
     open Oath.Saxon
-    open Oath.Saxon.Xml
 
     let config = fun () ->
         Configuration.WithTransformer (TestLoader.transformerFromPath "Examples.xsl")
