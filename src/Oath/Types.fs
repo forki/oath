@@ -10,7 +10,7 @@ module Extensions =
     open System.Xml.Schema
 
     type System.Collections.IEnumerator with
-        member this.ToSeq =
+        member this.AsSeq =
             seq { while this.MoveNext() do yield this.Current }
 
     type String with

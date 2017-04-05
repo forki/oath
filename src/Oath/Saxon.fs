@@ -9,23 +9,39 @@ module Saxon =
     // TODO: Support Saxon configurations.
     let private processor = Processor(false)
 
+    type XdmNode with
+        // TODO: Add support for remaining relevant node types (comment, PI, etc.)
+        member this.ToXmlNode() =
+            let kind = this.NodeKind
+
+            match kind with
+            | XmlNodeType.Attribute ->
+                let qname = this.NodeName.ToXmlQualifiedName()
+                XmlBuilder.attribute qname (this.GetAttributeValue(this.NodeName))
+            | XmlNodeType.Document -> XmlBuilder.document this.OuterXml
+            | XmlNodeType.Element -> XmlBuilder.element this.OuterXml
+            | XmlNodeType.Text -> XmlBuilder.text this.StringValue
+            | _ ->
+                failwithf "Cannot convert XdmNode of type %s into an XmlNode." (string kind)
+
     [<RequireQualifiedAccess>]
     module Builder =
         let documentBuilder = processor.NewDocumentBuilder()
 
-        let toXdmNode (node: Value<XdmNode>) =
+        let build (node: Value<XdmNode>) =
             match node with
             | Node n ->
-                match n.NodeType with
-                | XmlNodeType.Document -> documentBuilder.Wrap(n :?> XmlDocument)
-                | XmlNodeType.Element ->
-                    documentBuilder.Wrap(n.OwnerDocument)
-                                   .EnumerateAxis(XdmAxis.Child)
-                                   .ToSeq |> Seq.head :?> XdmNode
-                | _ -> failwith "boo"
+                if (n.NodeType = XmlNodeType.Document) then
+                    documentBuilder.Wrap(n :?> XmlDocument)
+                else
+                    let xdmNode = documentBuilder.Wrap(n.OwnerDocument)
+
+                    xdmNode.EnumerateAxis(XdmAxis.DescendantOrSelf).AsSeq
+                    |> Seq.cast<XdmNode>
+                    |> Seq.find (fun node -> node.NodeKind = n.NodeType)
             | PNode n -> n
             | AtomicValue v ->
-                failwithf "Can't convert atomic value %s into an XdmNode" (v.ToString())
+                failwithf "Can't convert atomic value %s into an XdmNode" (string v)
 
         let wrap (doc: XmlDocument) = PNode (documentBuilder.Wrap(doc))
 
@@ -42,24 +58,26 @@ module Saxon =
             | :? bool    as b   -> XdmAtomicValue(b)
             | :? Uri     as u   -> XdmAtomicValue(u)
             | :? QName   as q   -> XdmAtomicValue(q)
-            | _                 -> failwithf "Can't convert %s into an XdmAtomicValue." (value.ToString())
+            | _                 ->
+                failwithf "Can't convert %s into an XdmAtomicValue." (string value)
 
         let toXdmValue value =
             match value with
             | AtomicValue v -> v |> toXdmAtomic :> XdmValue
-            | Node _ -> Builder.toXdmNode value :> XdmValue
+            | Node _ -> value |> Builder.build :> XdmValue
             | PNode n -> n :> XdmValue
 
         let dictionarize (xs: (XmlQualifiedName * Value<XdmNode>) list) =
             xs
             |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdmValue)
-            |> dict |> Dictionary
+            |> dict
+            |> Dictionary
 
         let toObj (value: XdmValue) =
             match box value with
             | :? XdmNode as node -> node.getUnderlyingXmlNode() :> obj
             | :? XdmAtomicValue as value -> value.Value
-            | _ -> value.ToString() |> sprintf "Can't convert %s into a native .NET value." |> failwith
+            | _ -> failwithf "Can't convert %s into a native .NET value." (string value)
 
     [<RequireQualifiedAccess>]
     module XSLT =
@@ -84,7 +102,7 @@ module Saxon =
 
         let setContextNode (node: Value<XdmNode> option) (transformer: Xslt30Transformer) =
             node |> Option.iter (fun n ->
-                transformer.GlobalContextItem <- n |> Builder.toXdmNode)
+                transformer.GlobalContextItem <- n |> Builder.build)
 
             transformer
 
@@ -111,24 +129,12 @@ module Saxon =
             match resultType with
             | AtomicResult -> AtomicValue (transformation() |> XdmUtils.toObj)
             | NodeResult ->
-                let node = transformation() :?> XdmNode
-
-                match node.NodeKind with
-                | XmlNodeType.Attribute ->
-                    let qName = node.NodeName.ToXmlQualifiedName()
-                    XmlBuilder.attribute qName (node.GetAttributeValue(node.NodeName))
-                | XmlNodeType.Document ->
-                    XmlBuilder.document node.OuterXml
-                | XmlNodeType.Element ->
-                    XmlBuilder.element node.OuterXml
-                | XmlNodeType.Text ->
-                    XmlBuilder.text node.StringValue
-                | _ -> failwith "boo"
+                (transformation() :?> XdmNode).ToXmlNode()
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
 
-            transform resultType (fun () -> transformer.ApplyTemplates(node |> Builder.toXdmNode))
+            transform resultType (fun () -> transformer.ApplyTemplates(node |> Builder.build))
 
         let callTemplate executable resultType name node parameters =
             let transformer = getTransformer executable parameters |> setContextNode node
@@ -151,11 +157,11 @@ module Saxon =
         let select query node = compiler.Evaluate(query, node)
 
         let selectNode query (value: Value<XdmNode>) =
-            PNode (select query (Builder.toXdmNode value) :?> XdmNode)
+            PNode (select query (Builder.build value) :?> XdmNode)
 
         let matches (query: string) (ctx: Value<XdmNode>): bool =
             let selector = compiler.Compile(query).Load()
-            selector.ContextItem <- (Builder.toXdmNode ctx :> XdmItem)
+            selector.ContextItem <- (Builder.build ctx :> XdmItem)
             selector.EffectiveBooleanValue()
 
     module Xml =

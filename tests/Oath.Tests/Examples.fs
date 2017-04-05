@@ -6,7 +6,6 @@ module Examples =
     open Oath
     open Oath.Saxon
     open Oath.Saxon.Xml
-    // open Oath.XmlBuilder
 
     let config = fun () ->
         Configuration.WithTransformer (TestLoader.transformerFromPath "Examples.xsl")
@@ -14,15 +13,16 @@ module Examples =
     [<Tests>]
     let tests = Expect.transformation config <| fun (==>) (<?>) (</>) ->
         testList "Test XSLT with F#" [
-            testCase "Apply a template with no parameters in the default mode" <| fun () ->
+            test "Apply a template with no parameters in the default mode" {
                 /// `Template.apply` the most concise way of expressing a XSLT template application.
                 /// It creates an <xsl:apply-templates/> instruction.
                 ///
                 /// `==>` executes the instruction and compares the result of the transformation
                 /// against the control XML node.
                 document """<input/>""" |> Template.Apply ==> document """<output/>"""
+            }
 
-            testCase "Apply a template with a parameter in the default mode" <| fun () ->
+            test "Apply a template with a parameter in the default mode" {
                 /// A more explicit way of expressing an XSLT template application is to use the
                 /// `ApplyTemplate` type.
                 ///
@@ -33,26 +33,30 @@ module Examples =
                     /// `Q` is shorthand for creating an `XmlQualifiedName`.
                     parameters = Parameter.List [(Q "number", AtomicValue 42L)]
                 } ==> document """<output number="42"/>"""
+            }
 
-            testCase "Apply a template in a non-default mode" <| fun () ->
+            test "Apply a template in a non-default mode" {
                 ApplyTemplate {
                     node = document """<input/>"""
                     mode = Some (Q "non-default")
                     parameters = []
                 } ==> document """<output mode="non-default"/>"""
+            }
 
-            testCase "Call a template" <| fun () ->
+            test "Call a template" {
                 CallTemplate {
                     name = Q "named-template"
                     parameters = Parameter.List [(Q "number", AtomicValue 84L)]
                     node = None
                 } ==> document """<output number="84"/>"""
+            }
 
-            testCase "Call a template and set a context node" <| fun () ->
+            test "Call a template and set a context node" {
                 Template.Call (Q "named-template", element """<input number="1"/>""")
                 ==> document """<output number="10"/>"""
+            }
 
-            testCase "Select a context node, apply the template for that node, and check whether the result matches an XPath expression" <| fun () ->
+            test "Select a context node, apply the template for that node, and check whether the result matches an XPath expression" {
                 /// Define an input XML fragment.
                 document """
                 <parent number="42">
@@ -66,11 +70,13 @@ module Examples =
                 /// Execute the `ApplyTemplate` instruction on the `<child>` element and check
                 /// whether it matches the given XPath expression.
                 <?> "output[xs:integer(@number) eq 42]"
+            }
 
-            testCase "Call an XSLT function" <| fun () ->
-                /// Alternatively, use `CallFunction`.
+            test "Call an XSLT function" {
                 Function.Call (Q2 "local" "reverse", [AtomicValue "foo"]) ==> AtomicValue "oof"
+            }
 
-            testCase "Call an XSLT function that returns an element" <| fun () ->
+            test "Call an XSLT function that returns an element" {
                 Function.Call (Q2 "local" "wrap", [element "<foo/>"]) ==> element "<bar><foo/></bar>"
+            }
         ]

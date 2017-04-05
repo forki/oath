@@ -49,10 +49,9 @@ module Expect =
         match (result, control |> config.controlRefiner) with
         | AtomicValue a, AtomicValue c ->
             Expect.equal a c "The transformation yields the expected atomic value."
-        | Node a, Node c -> xmlEquals a c
-        | PNode a, Node c -> xmlEquals (unwrap a) c
-        | Node a, PNode c ->
-            xmlEquals a (unwrap c)
+        | Node a,  Node c  -> xmlEquals a c
+        | PNode a, Node c  -> xmlEquals (unwrap a) c
+        | Node a,  PNode c -> xmlEquals a (unwrap c)
         | PNode a, PNode c -> xmlEquals (unwrap a) (unwrap c)
         | _ ->
             Tests.failtestf """Mismatch between actual value of type %s and control value of type %s: can only compare atomic values or nodes."""
@@ -73,7 +72,7 @@ module Expect =
             Tests.failtest "XML schema validation failed: the transformation yields an atomic value."
         | Node n ->
             let result = validate schema n
-            Expect.isTrue result.Valid (result.Problems.ToString())
+            Expect.isTrue result.Valid (string result.Problems)
         | PNode _ -> raise (NotImplementedException())
 
     /// Given a [Configuration] and a function, execute the function with
@@ -87,8 +86,4 @@ module Expect =
     /// ```
     let transformation (initializer: unit -> Configuration<'n, 'p1, 'p2, 'p3>) transform: Test =
         let config = initializer()
-
-        transform
-            (yields config)
-            (matches config)
-            (Oath.select config)
+        transform (yields config) (matches config) (Oath.select config)
