@@ -28,7 +28,7 @@ module Saxon =
     module Builder =
         let documentBuilder = processor.NewDocumentBuilder()
 
-        let build (node: Value<XdmNode>) =
+        let build (node: XmlValue<XdmNode>) =
             match node with
             | Node n ->
                 if (n.NodeType = XmlNodeType.Document) then
@@ -67,7 +67,7 @@ module Saxon =
             | Node _ -> value |> Builder.build :> XdmValue
             | PNode n -> n :> XdmValue
 
-        let dictionarize (xs: (XmlQualifiedName * Value<XdmNode>) list) =
+        let dictionarize (xs: (XmlQualifiedName * XmlValue<XdmNode>) list) =
             xs
             |> List.map (fun (name: XmlQualifiedName, value) -> (QName name), value |> toXdmValue)
             |> dict
@@ -100,7 +100,7 @@ module Saxon =
         let compileXmlNode (node: XmlNode) =
             node |> Builder.documentBuilder.Build |> compiler.Compile
 
-        let setContextNode (node: Value<XdmNode> option) (transformer: Xslt30Transformer) =
+        let setContextNode (node: XmlValue<XdmNode> option) (transformer: Xslt30Transformer) =
             node |> Option.iter (fun n ->
                 transformer.GlobalContextItem <- n |> Builder.build)
 
@@ -156,10 +156,10 @@ module Saxon =
 
         let select query node = compiler.Evaluate(query, node)
 
-        let selectNode query (value: Value<XdmNode>) =
+        let selectNode query (value: XmlValue<XdmNode>) =
             PNode (select query (Builder.build value) :?> XdmNode)
 
-        let matches (query: string) (ctx: Value<XdmNode>): bool =
+        let matches (query: string) (ctx: XmlValue<XdmNode>): bool =
             let selector = compiler.Compile(query).Load()
             selector.ContextItem <- (Builder.build ctx :> XdmItem)
             selector.EffectiveBooleanValue()

@@ -42,7 +42,7 @@ module Expect =
 
     /// Execute an [Instruction] and check whether the result equals the control
     /// XML [Node].
-    let yields config instruction (control: Value<'n>) =
+    let yields config instruction (control: XmlValue<'n>) =
         let result = Oath.execute config control.ResultType instruction
         let unwrap = config.transformer.Unwrap
 

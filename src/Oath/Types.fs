@@ -54,7 +54,7 @@ type ResultType =
     | AtomicResult
     | NodeResult
 
-type Value<'n> =
+type XmlValue<'n> =
     | AtomicValue of obj
     | Node of XmlNode
     | PNode of 'n
@@ -69,28 +69,28 @@ type ParameterScope = Stylesheet | Template
 
 /// An XSLT parameter declaration.
 type Parameter<'n> = {
-    values: (XmlQualifiedName * Value<'n>) list;
+    values: (XmlQualifiedName * XmlValue<'n>) list;
     tunnel: bool;
     scope: ParameterScope
 } with
-    static member List(values: (XmlQualifiedName * Value<'n>) list, ?scope, ?tunnel) =
+    static member List(values: (XmlQualifiedName * XmlValue<'n>) list, ?scope, ?tunnel) =
         [{
             values = values
             tunnel = defaultArg tunnel false
             scope = defaultArg scope Template
         }]
 
-type Arguments<'n> = Value<'n> list
+type Arguments<'n> = XmlValue<'n> list
 
 type TemplateApplication<'n, 'p> = {
-    node: Value<'n>
+    node: XmlValue<'n>
     mode: XmlQualifiedName option
     parameters: Parameter<'p> list
 }
 
 type TemplateCall<'n, 'p> = {
     name: XmlQualifiedName
-    node: Value<'n> option
+    node: XmlValue<'n> option
     parameters: Parameter<'p> list
 }
 
@@ -106,14 +106,14 @@ type Instruction<'n, 'p1, 'p2, 'p3> =
     | CallFunction of FunctionCall<'p3>
 
 type Template<'n> =
-    static member Apply(node: Value<'n>, ?mode, ?parameters) =
+    static member Apply(node: XmlValue<'n>, ?mode, ?parameters) =
         ApplyTemplate {
             node = node
             mode = mode
             parameters = defaultArg parameters []
         }
 
-    static member Call(name: XmlQualifiedName, ?node: Value<'n>, ?parameters) =
+    static member Call(name: XmlQualifiedName, ?node: XmlValue<'n>, ?parameters) =
         CallTemplate {
             name = name
             node = node
@@ -129,22 +129,22 @@ type Function =
         }
 
 /// A function that transforms an XML [Value] to an XML [Value].
-type XmlTransformer<'n> = Value<'n> -> Value<'n>
+type XmlTransformer<'n> = XmlValue<'n> -> XmlValue<'n>
 
 /// An XSLT transformer.
 type XsltTransformer<'n, 'p1, 'p2, 'p3> = {
     /// Execute an XSLT instruction.
-    Execute: XmlTransformer<'n> -> Instruction<'n, 'p1, 'p2, 'p3> -> ResultType -> Value<'n>
+    Execute: XmlTransformer<'n> -> Instruction<'n, 'p1, 'p2, 'p3> -> ResultType -> XmlValue<'n>
 
     /// Take an XPath expression and a [Value<'n>] and return boolean that
     /// indicates whether the node matches the expression.
-    Match: string -> Value<'n> -> bool
+    Match: string -> XmlValue<'n> -> bool
 
     /// Select a node with XPath.
-    Select: string -> Value<'n> -> Value<'n>
+    Select: string -> XmlValue<'n> -> XmlValue<'n>
 
     /// Serialize a value into a string
-    Serialize: Value<'n> -> string
+    Serialize: XmlValue<'n> -> string
 
     Unwrap: 'n -> XmlNode
 }
