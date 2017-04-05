@@ -55,6 +55,7 @@ type ResultType =
     | NodeResult
 
 type XmlValue<'n> =
+    | Sequence of XmlValue<'n> seq
     | AtomicValue of obj
     | Node of XmlNode
     | PNode of 'n

@@ -53,6 +53,7 @@ module Expect =
         | PNode a, Node c  -> xmlEquals (unwrap a) c
         | Node a,  PNode c -> xmlEquals a (unwrap c)
         | PNode a, PNode c -> xmlEquals (unwrap a) (unwrap c)
+        | PNode a, Sequence c -> 
         | _ ->
             Tests.failtestf """Mismatch between actual value of type %s and control value of type %s: can only compare atomic values or nodes."""
                 (result.GetType().ToString()) (control.GetType().ToString())
@@ -73,7 +74,7 @@ module Expect =
         | Node n ->
             let result = validate schema n
             Expect.isTrue result.Valid (string result.Problems)
-        | PNode _ -> raise (NotImplementedException())
+        | _ -> raise (NotImplementedException())
 
     /// Given a [Configuration] and a function, execute the function with
     /// functions curried with the given [Configuration] as the arguments.

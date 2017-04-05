@@ -58,6 +58,11 @@
     <xsl:sequence select="$bar"/>
   </xsl:function>
 
+  <xsl:function name="local:double" as="xs:int*">
+    <xsl:param name="numbers" as="xs:int*"/>
+    <xsl:sequence select="$numbers ! (. * 2)"/>
+  </xsl:function>
+
   <xsl:template match="parent/child">
     <output number="{../@number}">ignore me</output>
   </xsl:template>

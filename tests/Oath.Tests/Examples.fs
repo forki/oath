@@ -75,6 +75,11 @@ module Examples =
                 Function.Call (Q2 "local" "reverse", [AtomicValue "foo"]) ==> AtomicValue "oof"
             }
 
+            test "Call an XSLT function that returns multiple values" {
+                Function.Call (Q2 "local" "double", [AtomicValue 1; AtomicValue 2])
+                ==> Sequence [AtomicValue 2; AtomicValue 4]
+            }
+
             test "Call an XSLT function that returns an element" {
                 Function.Call (Q2 "local" "wrap", [element "<foo/>"]) ==> element "<bar><foo/></bar>"
             }

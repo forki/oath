@@ -129,7 +129,7 @@ module Saxon =
             match resultType with
             | AtomicResult -> AtomicValue (transformation() |> XdmUtils.toObj)
             | NodeResult ->
-                (transformation() :?> XdmNode).ToXmlNode()
+                ((transformation() :?> XdmNode).Simplify :?> XdmNode).ToXmlNode()
 
         let applyTemplates executable resultType node mode parameters =
             let transformer = getTransformer executable parameters |> setMode mode
