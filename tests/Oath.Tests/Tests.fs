@@ -4,7 +4,7 @@ module OathTest =
     open Expecto
     open Oath
     open Oath.Saxon
-    open Oath.XmlBuilder
+    open Oath.Saxon.Xml
 
     let config = fun () -> Configuration.WithTransformer (Saxon.getIdentityTransformer())
 

@@ -22,6 +22,11 @@ module Extensions =
             doc.Load(uri.AbsolutePath)
             doc
 
+        static member LoadXml(str: string) =
+            let doc = XmlDocument()
+            doc.LoadXml(str)
+            doc
+
         member this.XDocument =
             XDocument.Parse(this.OuterXml)
 

@@ -1,17 +1,13 @@
 ﻿namespace Oath
 
-module XmlBuilder =
+module internal XmlBuilder =
     open System.Xml
 
     let document str =
-        let doc = XmlDocument()
-        doc.LoadXml(str)
-        Node doc
+        XmlDocument.LoadXml(str) :> XmlNode |> Node
 
     let element str =
-        let doc = XmlDocument()
-        doc.LoadXml(str)
-        Node doc.DocumentElement
+        XmlDocument.LoadXml(str).DocumentElement :> XmlNode |> Node
 
     let attribute (qname: XmlQualifiedName) value =
         let attr = XmlDocument().CreateAttribute(qname.Name, qname.Namespace)
@@ -19,6 +15,5 @@ module XmlBuilder =
         Node attr
 
     let text str =
-        let doc = XmlDocument()
-        let t = doc.CreateTextNode(str)
+        let t = XmlDocument().CreateTextNode(str)
         Node t
