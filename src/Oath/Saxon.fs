@@ -16,14 +16,12 @@ module Saxon =
         let toXdmNode (node: Value<XdmNode>) =
             match node with
             | Node n ->
-                let xdmNode = documentBuilder.Build(n)
-
                 match n.NodeType with
-                | XmlNodeType.Document -> xdmNode
+                | XmlNodeType.Document -> documentBuilder.Wrap(n :?> XmlDocument)
                 | XmlNodeType.Element ->
-                    let e = xdmNode.EnumerateAxis(XdmAxis.Child)
-                    e.MoveNext() |> ignore
-                    e.Current :?> XdmNode
+                    documentBuilder.Wrap(n.OwnerDocument)
+                                   .EnumerateAxis(XdmAxis.Child)
+                                   .ToSeq |> Seq.head :?> XdmNode
                 | _ -> failwith "boo"
             | PNode n -> n
             | AtomicValue v ->

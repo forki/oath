@@ -9,6 +9,10 @@ module Extensions =
     open System.IO
     open System.Xml.Schema
 
+    type System.Collections.IEnumerator with
+        member this.ToSeq =
+            seq { while this.MoveNext() do yield this.Current }
+
     type String with
         member this.Xml =
             let fragment = XmlDocument().CreateDocumentFragment()
